@@ -19,10 +19,13 @@ android {
         applicationId = "com.visibeat.app"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        // Pre-1.0 on purpose: this is a sideloaded beta, and the number a tester
-        // reads in Settings should match the tag it was cut from.
-        versionName = "0.1.0-beta.1"
+        // Increments once per released build. Android compares this, not the
+        // name, when deciding whether an APK is an upgrade — leaving it at 1
+        // would make this build look identical to the last one.
+        versionCode = 2
+        // Plain dotted numbers, no semver pre-release suffix. "Beta" is what the
+        // release is called, not part of what the app reports.
+        versionName = "0.1.1"
 
         // ONNX Runtime ships a native library per ABI, and they are large: the
         // four together are 62 MB of this APK, of which x86 and x86_64 — 35 MB —
