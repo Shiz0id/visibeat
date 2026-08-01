@@ -29,8 +29,9 @@ before the visual rework, kept as a before-shot.
 
 ## Install
 
-Grab the APK from the [latest release](https://github.com/Shiz0id/visibeat/releases/latest)
-and open it on your phone.
+Grab the APK from the [releases page](https://github.com/Shiz0id/visibeat/releases) and
+open it on your phone. (Not `/releases/latest` — GitHub excludes pre-releases from that,
+and every build so far is one.)
 
 - **Android 7.0 (API 24)** or newer
 - **64-bit ARM only** (`arm64-v8a`) — essentially every phone since ~2017. It will not
