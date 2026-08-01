@@ -22,10 +22,10 @@ android {
         // Increments once per released build. Android compares this, not the
         // name, when deciding whether an APK is an upgrade — leaving it at 1
         // would make this build look identical to the last one.
-        versionCode = 2
+        versionCode = 3
         // Plain dotted numbers, no semver pre-release suffix. "Beta" is what the
         // release is called, not part of what the app reports.
-        versionName = "0.1.1"
+        versionName = "0.1.2"
 
         // ONNX Runtime ships a native library per ABI, and they are large: the
         // four together are 62 MB of this APK, of which x86 and x86_64 — 35 MB —
