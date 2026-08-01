@@ -1,0 +1,15 @@
+<resources>
+    <color name="ag_deep_space">#FF0A0C0E</color>
+
+    <!--
+        Dark parent: the UI is white-on-glass throughout, and the window
+        background shows through before a wallpaper has been chosen or decoded.
+        A light parent made those moments white-on-white and unreadable.
+    -->
+    <style name="Theme.VisiBeat" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/ag_deep_space</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+</resources>

@@ -1,0 +1,36 @@
+# Gradle / Android build output
+.gradle/
+build/
+*/build/
+captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# Local machine config — SDK paths differ per machine
+local.properties
+
+# IDE
+.idea/
+.claude/settings.local.json
+*.iml
+.cxx/
+
+# Signing material
+*.jks
+*.keystore
+
+# Debug captures: pulled database snapshots and crash logs, useful in the
+# moment and ~9 MB each. Kept out so the history does not carry them.
+dbdump*/
+crash.txt
+
+# Local scratch model, not referenced by the build (the shipped ONNX lives in
+# app/src/main/assets and is tracked).
+.textmodel/
+
+# OS noise
+.DS_Store
+Thumbs.db
