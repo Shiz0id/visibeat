@@ -20,7 +20,9 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        // Pre-1.0 on purpose: this is a sideloaded beta, and the number a tester
+        // reads in Settings should match the tag it was cut from.
+        versionName = "0.1.0-beta.1"
 
         // ONNX Runtime ships a native library per ABI, and they are large: the
         // four together are 62 MB of this APK, of which x86 and x86_64 — 35 MB —
