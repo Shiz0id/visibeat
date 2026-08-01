@@ -112,7 +112,9 @@ fun ArtistScreen(
         bioLoading = false
     }
 
-    val bySection = remember(releases) { releases.groupBy { ArtistReleaseGrouping.sectionFor(it.releaseType) } }
+    val bySection = remember(releases) {
+        releases.groupBy { ArtistReleaseGrouping.sectionFor(it.releaseType, it.isPrimaryArtist) }
+    }
     // A ranking of zeroes is not a ranking, so the heading tells the truth.
     val hasPlays = (header?.playCount ?: 0) > 0
 
@@ -205,7 +207,14 @@ fun ArtistScreen(
                 }
             }
 
-            listOf(ArtistReleaseGrouping.ALBUMS, ArtistReleaseGrouping.SINGLES_AND_EPS).forEach { section ->
+            // Order is the point: their own records, then their own short-form
+            // releases, then the ones they are a guest on. "Appears On" last
+            // because it is the least of what an artist page is for.
+            listOf(
+                ArtistReleaseGrouping.ALBUMS,
+                ArtistReleaseGrouping.SINGLES_AND_EPS,
+                ArtistReleaseGrouping.APPEARS_ON
+            ).forEach { section ->
                 val rows = bySection[section].orEmpty()
                 if (rows.isNotEmpty()) {
                     item(key = "head-$section") { SectionHeading(section) }

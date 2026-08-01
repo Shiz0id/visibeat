@@ -47,7 +47,17 @@ data class ArtistReleaseRow(
     val releaseType: String,
     val trackCount: Int,
     val artPath: String?,
-    val mediaStoreAlbumId: Long?
+    val mediaStoreAlbumId: Long?,
+    /**
+     * True when the artist made this record, false when they are only a guest on
+     * it.
+     *
+     * The distinction the release list could not previously draw. A featured
+     * credit is a real credit — `track_artist` is right to hold it — but it is
+     * not authorship, and treating the two the same put Kendrick Lamar's *DAMN.*
+     * in Rihanna's discography on the strength of one verse.
+     */
+    val isPrimaryArtist: Boolean = true
 ) {
     val artModel: Any? by lazy(LazyThreadSafetyMode.PUBLICATION) {
         resolveArtModel(artPath, releaseId, mediaStoreAlbumId)
@@ -127,7 +137,13 @@ interface ArtistPageDao {
     fun observeArtistTracks(artistId: Long): Flow<List<TimelineItemRow>>
 
     /**
-     * The artist's releases, newest first.
+     * The artist's releases, newest first, each flagged as theirs or a guest spot.
+     *
+     * Membership is still "any credit on any track", because dropping guest
+     * appearances outright is not an option: measured on a real 1,143-track
+     * library, 117 artists appear *only* as features — Drake, Nicki Minaj,
+     * Future — and filtering would empty their pages rather than fix them. The
+     * flag lets the caller shelve them separately instead.
      *
      * `releaseType` was the literal "UNKNOWN" for every row until MusicBrainz
      * enrichment started storing the real release-group type, so the caller has
@@ -144,7 +160,14 @@ interface ArtistPageDao {
             (SELECT t.artPath FROM resolved_tracks t
                 WHERE t.releaseId = r.releaseId AND t.artPath IS NOT NULL LIMIT 1) AS artPath,
             (SELECT t.mediaStoreAlbumId FROM resolved_tracks t
-                WHERE t.releaseId = r.releaseId AND t.mediaStoreAlbumId IS NOT NULL LIMIT 1) AS mediaStoreAlbumId
+                WHERE t.releaseId = r.releaseId AND t.mediaStoreAlbumId IS NOT NULL LIMIT 1) AS mediaStoreAlbumId,
+            EXISTS (
+                SELECT 1 FROM resolved_tracks t
+                JOIN track_artist ta ON ta.trackId = t.trackId
+                WHERE t.releaseId = r.releaseId
+                  AND ta.artistId = :artistId
+                  AND ta.role IN ('PRIMARY', 'ALBUM_ARTIST')
+            ) AS isPrimaryArtist
         FROM releases r
         WHERE r.releaseId IN (
             SELECT DISTINCT rt.releaseId FROM resolved_tracks rt
@@ -170,9 +193,27 @@ object ArtistReleaseGrouping {
     const val ALBUMS = "Albums"
     const val SINGLES_AND_EPS = "EP & Singles"
 
-    fun sectionFor(releaseType: String?): String =
-        when (releaseType?.uppercase()) {
-            "SINGLE", "EP" -> SINGLES_AND_EPS
+    /**
+     * Records the artist is on but did not make.
+     *
+     * Deliberately one shelf rather than a guest Albums and a guest Singles: it
+     * is a footnote to a discography, and splitting a footnote in two gives an
+     * artist known for three features two headings with one card under each.
+     */
+    const val APPEARS_ON = "Appears On"
+
+    /**
+     * Which shelf a release belongs on.
+     *
+     * Guest status is checked before type, because "is this theirs" outranks
+     * "what kind of record is it" — a listener scanning a discography wants the
+     * artist's own work first and the cameos gathered at the end, not a guest
+     * verse filed among the albums by virtue of being on one.
+     */
+    fun sectionFor(releaseType: String?, isPrimaryArtist: Boolean = true): String =
+        when {
+            !isPrimaryArtist -> APPEARS_ON
+            releaseType?.uppercase() in setOf("SINGLE", "EP") -> SINGLES_AND_EPS
             else -> ALBUMS
         }
 }
