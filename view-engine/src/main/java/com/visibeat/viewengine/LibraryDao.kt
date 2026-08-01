@@ -133,8 +133,14 @@ interface LibraryDao {
             a.displayName AS artistName,
             COUNT(DISTINCT ta.trackId) AS trackCount,
             MAX(ai.imageUrl) AS imageUrl,
-            MAX(rt.artPath) AS fallbackArtPath,
-            MAX(rt.mediaStoreAlbumId) AS fallbackAlbumId
+            COALESCE(
+                MAX(CASE WHEN ta.role IN ('PRIMARY', 'ALBUM_ARTIST') THEN rt.artPath END),
+                MAX(rt.artPath)
+            ) AS fallbackArtPath,
+            COALESCE(
+                MAX(CASE WHEN ta.role IN ('PRIMARY', 'ALBUM_ARTIST') THEN rt.mediaStoreAlbumId END),
+                MAX(rt.mediaStoreAlbumId)
+            ) AS fallbackAlbumId
         FROM artists a
         JOIN track_artist ta ON ta.artistId = a.artistId
         LEFT JOIN resolved_tracks rt ON rt.trackId = ta.trackId
@@ -198,8 +204,14 @@ interface LibraryDao {
             a.displayName AS artistName,
             COUNT(DISTINCT ta.trackId) AS trackCount,
             MAX(ai.imageUrl) AS imageUrl,
-            MAX(rt.artPath) AS fallbackArtPath,
-            MAX(rt.mediaStoreAlbumId) AS fallbackAlbumId
+            COALESCE(
+                MAX(CASE WHEN ta.role IN ('PRIMARY', 'ALBUM_ARTIST') THEN rt.artPath END),
+                MAX(rt.artPath)
+            ) AS fallbackArtPath,
+            COALESCE(
+                MAX(CASE WHEN ta.role IN ('PRIMARY', 'ALBUM_ARTIST') THEN rt.mediaStoreAlbumId END),
+                MAX(rt.mediaStoreAlbumId)
+            ) AS fallbackAlbumId
         FROM artists a
         JOIN track_artist ta ON ta.artistId = a.artistId
         LEFT JOIN resolved_tracks rt ON rt.trackId = ta.trackId
@@ -265,8 +277,14 @@ interface LibraryDao {
             a.displayName AS artistName,
             COUNT(DISTINCT ta.trackId) AS trackCount,
             MAX(ai.imageUrl) AS imageUrl,
-            MAX(rt.artPath) AS fallbackArtPath,
-            MAX(rt.mediaStoreAlbumId) AS fallbackAlbumId
+            COALESCE(
+                MAX(CASE WHEN ta.role IN ('PRIMARY', 'ALBUM_ARTIST') THEN rt.artPath END),
+                MAX(rt.artPath)
+            ) AS fallbackArtPath,
+            COALESCE(
+                MAX(CASE WHEN ta.role IN ('PRIMARY', 'ALBUM_ARTIST') THEN rt.mediaStoreAlbumId END),
+                MAX(rt.mediaStoreAlbumId)
+            ) AS fallbackAlbumId
         FROM artists a
         JOIN track_artist ta ON ta.artistId = a.artistId
         LEFT JOIN resolved_tracks rt ON rt.trackId = ta.trackId
@@ -349,8 +367,14 @@ interface LibraryDao {
             a.displayName AS artistName,
             COUNT(DISTINCT ta.trackId) AS trackCount,
             MAX(ai.imageUrl) AS imageUrl,
-            MAX(rt.artPath) AS fallbackArtPath,
-            MAX(rt.mediaStoreAlbumId) AS fallbackAlbumId
+            COALESCE(
+                MAX(CASE WHEN ta.role IN ('PRIMARY', 'ALBUM_ARTIST') THEN rt.artPath END),
+                MAX(rt.artPath)
+            ) AS fallbackArtPath,
+            COALESCE(
+                MAX(CASE WHEN ta.role IN ('PRIMARY', 'ALBUM_ARTIST') THEN rt.mediaStoreAlbumId END),
+                MAX(rt.mediaStoreAlbumId)
+            ) AS fallbackAlbumId
         FROM artists a
         LEFT JOIN track_artist ta ON ta.artistId = a.artistId
         LEFT JOIN resolved_tracks rt ON rt.trackId = ta.trackId
@@ -381,7 +405,18 @@ data class LibraryArtistRow(
     val trackCount: Int,
     /** Looked-up portrait, or null if none has been found for this artist. */
     val imageUrl: String? = null,
-    /** Album art to stand in for a missing portrait. */
+    /**
+     * Album art to stand in for a missing portrait.
+     *
+     * Taken from a record the artist actually made where one exists, and only
+     * from a guest appearance when it does not. Any credit used to qualify, so
+     * Rihanna — who sings one verse on "LOYALTY." — wore Kendrick Lamar's *DAMN.*
+     * sleeve as her avatar.
+     *
+     * A preference rather than a filter, because 117 artists in a real library
+     * have nothing but guest credits. Excluding those outright would not fix
+     * their avatar, it would delete it.
+     */
     val fallbackArtPath: String? = null,
     val fallbackAlbumId: Long? = null
 ) {

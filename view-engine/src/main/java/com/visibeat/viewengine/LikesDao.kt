@@ -170,12 +170,18 @@ interface LikesDao {
             a.displayName AS artistName,
             (SELECT COUNT(DISTINCT ta.trackId) FROM track_artist ta WHERE ta.artistId = a.artistId) AS trackCount,
             (SELECT ai.imageUrl FROM artist_images ai WHERE ai.artistId = a.artistId) AS imageUrl,
+            -- Their own record's art where they have one. See
+            -- LibraryArtistRow.fallbackArtPath.
             (SELECT rt.artPath FROM resolved_tracks rt
                 JOIN track_artist ta2 ON ta2.trackId = rt.trackId
-                WHERE ta2.artistId = a.artistId AND rt.artPath IS NOT NULL LIMIT 1) AS fallbackArtPath,
+                WHERE ta2.artistId = a.artistId AND rt.artPath IS NOT NULL
+                ORDER BY (ta2.role IN ('PRIMARY', 'ALBUM_ARTIST')) DESC
+                LIMIT 1) AS fallbackArtPath,
             (SELECT rt.mediaStoreAlbumId FROM resolved_tracks rt
                 JOIN track_artist ta3 ON ta3.trackId = rt.trackId
-                WHERE ta3.artistId = a.artistId AND rt.mediaStoreAlbumId IS NOT NULL LIMIT 1) AS fallbackAlbumId
+                WHERE ta3.artistId = a.artistId AND rt.mediaStoreAlbumId IS NOT NULL
+                ORDER BY (ta3.role IN ('PRIMARY', 'ALBUM_ARTIST')) DESC
+                LIMIT 1) AS fallbackAlbumId
         FROM liked_artists la
         JOIN artists a ON a.artistId = la.artistId
         ORDER BY la.likedAt DESC

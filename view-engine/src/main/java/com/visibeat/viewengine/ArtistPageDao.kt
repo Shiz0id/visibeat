@@ -82,12 +82,18 @@ interface ArtistPageDao {
             (SELECT COALESCE(SUM(ph.playCount), 0) FROM play_history ph
                 JOIN track_artist ta3 ON ta3.trackId = ph.trackId
                 WHERE ta3.artistId = a.artistId) AS playCount,
+            -- Art from a record they made, falling back to a guest spot only if
+            -- they have none of their own. See LibraryArtistRow.fallbackArtPath.
             (SELECT rt.artPath FROM resolved_tracks rt
                 JOIN track_artist ta4 ON ta4.trackId = rt.trackId
-                WHERE ta4.artistId = a.artistId AND rt.artPath IS NOT NULL LIMIT 1) AS fallbackArtPath,
+                WHERE ta4.artistId = a.artistId AND rt.artPath IS NOT NULL
+                ORDER BY (ta4.role IN ('PRIMARY', 'ALBUM_ARTIST')) DESC
+                LIMIT 1) AS fallbackArtPath,
             (SELECT rt.mediaStoreAlbumId FROM resolved_tracks rt
                 JOIN track_artist ta5 ON ta5.trackId = rt.trackId
-                WHERE ta5.artistId = a.artistId AND rt.mediaStoreAlbumId IS NOT NULL LIMIT 1) AS fallbackAlbumId
+                WHERE ta5.artistId = a.artistId AND rt.mediaStoreAlbumId IS NOT NULL
+                ORDER BY (ta5.role IN ('PRIMARY', 'ALBUM_ARTIST')) DESC
+                LIMIT 1) AS fallbackAlbumId
         FROM artists a
         WHERE a.artistId = :artistId
         LIMIT 1
